@@ -217,7 +217,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Copilot Installation
+# Copilot Instructions
 .github/copilot-instructions.md
 
 # Claude Data
