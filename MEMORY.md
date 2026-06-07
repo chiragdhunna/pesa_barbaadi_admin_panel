@@ -1,5 +1,0 @@
-- [Admin credentials configured](.streamlit/secrets.toml) — ADMIN_USERNAME and ADMIN_PASSWORD set, Firebase service account path defined
-- [Firebase service initialized](services/firebase_service.py) — @st.cache_resource wrapper, duplicate initialization protection, proper error handling
-- [Git ignore updated](.gitignore) — added Streamlit secrets and Firebase service account patterns
-- [Balance service created](services/balance_service.py) — recompute_balance() function for trip expense splitting
-- [Phase 1-A complete] — Services layer expanded with balance calculation functionality
