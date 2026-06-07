@@ -227,4 +227,5 @@ firebase_config/service_account.json
 .claude-agent/
 .claude-logs/
 *claude-code*
-*.claude.jsonMEMORY.md
+*.claude.json
+MEMORY.md
