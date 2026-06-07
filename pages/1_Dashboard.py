@@ -1,6 +1,7 @@
 import streamlit as st
 from services.firebase_service import init_firebase
 from firebase_admin import firestore
+from firebase_admin.auth import UidIdentifier
 
 # Auth check at top
 if not st.session_state.get("authenticated"):
@@ -99,8 +100,9 @@ try:
                 # Get users in batches (max 100 per call)
                 uids_list = list(paid_by_uids)
                 for i in range(0, len(uids_list), 100):
-                    batch = uids_list[i:i+100]
-                    users_result = auth_client.get_users(batch)
+                    batch = uids_list[i:i + 100]
+                    identifiers = [UidIdentifier(uid) for uid in batch]
+                    users_result = auth_client.get_users(identifiers)
                     for user in users_result.users:
                         user_map[user.uid] = user.display_name or user.email or user.uid
             except Exception as e:
