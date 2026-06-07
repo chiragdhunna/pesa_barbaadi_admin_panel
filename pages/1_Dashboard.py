@@ -50,8 +50,9 @@ try:
     total_entries = 0
     total_spent = 0.0
     for entry in entries_ref.stream():
+        entry_data = entry.to_dict()
         total_entries += 1
-        total_spent += entry.get("amount", 0)
+        total_spent += entry_data.get("amount", 0)
     with col3:
         st.metric(label="Total Entries", value=total_entries)
     with col4:

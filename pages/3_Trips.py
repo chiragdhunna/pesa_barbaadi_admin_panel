@@ -31,7 +31,7 @@ try:
         entries_ref = db.collection("trips").document(trip_doc.id).collection("entries")
         entries = list(entries_ref.stream())
         entry_count = len(entries)
-        total_spent = sum(entry.get("amount", 0) for entry in entries)
+        total_spent = sum(entry.to_dict().get("amount", 0) for entry in entries)
 
         trip_dict["entry_count"] = entry_count
         trip_dict["total_spent"] = total_spent
