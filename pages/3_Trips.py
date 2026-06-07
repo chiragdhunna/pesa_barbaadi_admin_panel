@@ -59,7 +59,7 @@ with tab1:
             # Format created date
             created_val = trip.get("createdAt")
             if hasattr(created_val, 'strftime'):
-                created_str = created_val.strftime("%Y-%m-%d")
+                created_str = created_val.strftime("%d %b %Y")
             else:
                 created_str = str(created_val) if created_val else ""
 

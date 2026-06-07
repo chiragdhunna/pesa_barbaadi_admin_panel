@@ -52,7 +52,7 @@ with tab1:
                 try:
                     # Firestore timestamps are in microseconds since epoch
                     created_dt = pd.to_datetime(user["created_at"], unit='ms')
-                    created_str = created_dt.strftime("%Y-%m-%d %H:%M")
+                    created_str = created_dt.strftime("%d %b %Y")
                 except:
                     created_str = str(user["created_at"])
 
@@ -60,7 +60,7 @@ with tab1:
             if user["last_sign_in"]:
                 try:
                     last_sign_in_dt = pd.to_datetime(user["last_sign_in"], unit='ms')
-                    last_sign_in_str = last_sign_in_dt.strftime("%Y-%m-%d %H:%M")
+                    last_sign_in_str = last_sign_in_dt.strftime("%d %b %Y")
                 except:
                     last_sign_in_str = str(user["last_sign_in"])
 
