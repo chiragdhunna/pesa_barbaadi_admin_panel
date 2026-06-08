@@ -61,5 +61,3 @@ else:
         st.session_state["authenticated"] = False
         st.rerun()
 
-# Dummy app for Vercel's Python builder to avoid the error about missing app object
-app = None
