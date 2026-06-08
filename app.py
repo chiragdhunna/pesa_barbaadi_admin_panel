@@ -1,6 +1,10 @@
 import streamlit as st
 import os
 
+# Set Streamlit server port from Vercel's PORT environment variable if available
+if "PORT" in os.environ:
+    os.environ["STREAMLIT_SERVER_PORT"] = os.environ["PORT"]
+
 def login_page():
     st.set_page_config(
         page_title="Pesa Barbaadi Admin",
@@ -56,3 +60,6 @@ else:
     if st.sidebar.button("🚪 Logout"):
         st.session_state["authenticated"] = False
         st.rerun()
+
+# Dummy app for Vercel's Python builder to avoid the error about missing app object
+app = None

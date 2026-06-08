@@ -161,14 +161,48 @@ Without this index, the recent activity section on the dashboard will fail to lo
 
 ### Vercel
 
-To deploy on Vercel, you need to set the following environment variables in your Vercel project settings:
+To deploy on Vercel, follow these steps:
 
-- `FIREBASE_SERVICE_ACCOUNT_JSON`: The entire Firebase service account key as a JSON string.
-  You can obtain this by copying the contents of your serviceAccountKey.json file.
-- `ADMIN_USERNAME`: Your admin username for login.
-- `ADMIN_PASSWORD`: Your admin password for login.
+1. **Add a `vercel.json` file** to the root of your project (already included in this repository) with the following content:
+   ```json
+   {
+     "builds": [
+       {
+         "src": "app.py",
+         "use": "@vercel/python",
+         "config": { "maxLambdaSize": "15mb" }
+       }
+     ],
+     "routes": [
+       {
+         "src": "/_stcore/(.*)",
+         "dest": "/_stcore/$1"
+       },
+       {
+         "src": "/(.*)",
+         "dest": "app.py"
+       }
+     ]
+   }
+   ```
+
+2. **Push your code** to a GitHub repository.
+
+3. **Import the project** into Vercel:
+   - Select your repository
+   - Vercel will automatically detect the `vercel.json` file and configure the build settings
+   - Framework: Should be detected as Python (Streamlit)
+
+4. **Add Environment Variables** in Vercel Project Settings:
+   - `FIREBASE_SERVICE_ACCOUNT_JSON`: Paste the entire contents of your Firebase serviceAccountKey.json file
+   - `ADMIN_USERNAME`: Your admin username
+   - `ADMIN_PASSWORD`: Your admin password
+
+5. **Deploy** - Vercel will build and deploy your Streamlit app.
 
 **Note:** The application will automatically use these environment variables if they are set. If not, it will fall back to looking for `FIREBASE_SERVICE_ACCOUNT_PATH` in Streamlit secrets (for local development) and then environment variables.
+
+**Important:** The app uses the `PORT` environment variable provided by Vercel to set the Streamlit server port, so no additional configuration is needed for the port.
 
 ### Other Platforms (Heroku, Docker, etc.)
 
