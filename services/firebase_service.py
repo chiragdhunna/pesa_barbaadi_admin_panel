@@ -21,7 +21,7 @@ def init_firebase():
                 # Fallback to file path (from st.secrets for local dev or environment variable)
                 try:
                     service_account_path = st.secrets["FIREBASE_SERVICE_ACCOUNT_PATH"]
-                except KeyError:
+                except (KeyError, FileNotFoundError):
                     service_account_path = os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH")
 
                 if not service_account_path:

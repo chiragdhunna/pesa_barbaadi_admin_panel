@@ -15,12 +15,12 @@ def login_page():
     # Get admin credentials from secrets or environment variables
     try:
         ADMIN_USERNAME = st.secrets["ADMIN_USERNAME"]
-    except KeyError:
+    except (KeyError, FileNotFoundError):
         ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME")
 
     try:
         ADMIN_PASSWORD = st.secrets["ADMIN_PASSWORD"]
-    except KeyError:
+    except (KeyError, FileNotFoundError):
         ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
     # Create centered column
