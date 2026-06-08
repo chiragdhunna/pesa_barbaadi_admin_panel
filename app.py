@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import sys
 import threading
 import time
 import urllib.request
@@ -24,19 +25,25 @@ _server_start_lock = threading.Lock()
 
 def run_streamlit():
     """Run Streamlit app in headless mode. This function blocks."""
-    # Configure Streamlit options
-    sys_argv = [
-        "streamlit",
-        "run",
-        __file__,
-        "--server.port", str(PORT),
-        "--server.headless", "true",
-        "--server.enableCORS", "false",
-        "--server.enableXsrfProtection", "false",
-        "--browser.gatherUsageStats", "false",
-    ]
-    # Bootstrap Streamlit with our arguments
-    st_bootstrap.run(sys_argv, flag_options={})
+    try:
+        # Configure Streamlit options
+        sys_argv = [
+            "streamlit",
+            "run",
+            __file__,
+            "--server.port", str(PORT),
+            "--server.headless", "true",
+            "--server.enableCORS", "false",
+            "--server.enableXsrfProtection", "false",
+            "--browser.gatherUsageStats", "false",
+        ]
+        # Bootstrap Streamlit with our arguments
+        st_bootstrap.run(sys_argv, flag_options={})
+    except Exception as e:
+        # Log the error so we can see it in Vercel logs
+        print(f"Streamlit server error: {e}")
+        # Re-raise to prevent silent failure
+        raise
 
 def start_streamlit_server():
     """Start the Streamlit server in a background thread if not already started."""
@@ -46,8 +53,8 @@ def start_streamlit_server():
             _streamlit_thread = threading.Thread(target=run_streamlit, daemon=True)
             _streamlit_thread.start()
             _server_started = True
-            # Give the server a moment to start
-            time.sleep(2)
+            # Give the server time to start - increased timeout
+            time.sleep(5)
 
 def login_page():
     st.set_page_config(
@@ -110,68 +117,88 @@ start_streamlit_server()
 
 # WSGI app object for Vercel Python builder
 def app(environ, start_response):
-    # Proxy request to the local Streamlit server
-    try:
-        # Construct the target URL
-        target_url = f"http://127.0.0.1:{PORT}{environ.get('PATH_INFO', '')}"
-        if environ.get('QUERY_STRING'):
-            target_url += f"?{environ['QUERY_STRING']}"
+    # Proxy request to the local Streamlit server with retries
+    max_retries = 3
+    retry_delay = 1  # seconds
 
-        # Prepare headers to forward (excluding hop-by-hop headers)
-        headers = {}
-        for key, value in environ.items():
-            if key.startswith('HTTP_'):
-                header_name = key[5:].replace('_', '-')
-                if header_name.lower() not in ('host', 'connection', 'keep-alive',
-                                             'proxy-authenticate', 'proxy-authorization',
-                                             'te', 'trailers', 'transfer-encoding', 'upgrade'):
-                    headers[header_name] = value
-            elif key in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
-                header_name = key.replace('_', '-')
-                headers[header_name] = value
-
-        # Read request body if present
-        request_body = None
-        if environ.get('REQUEST_METHOD') in ('POST', 'PUT', 'PATCH'):
-            try:
-                request_body_size = int(environ.get('CONTENT_LENGTH', 0))
-            except (ValueError):
-                request_body_size = 0
-            if request_body_size > 0:
-                request_body = environ['wsgi.input'].read(request_body_size)
-
-        # Make the request to Streamlit server
-        req = urllib.request.Request(
-            target_url,
-            data=request_body,
-            headers=headers,
-            method=environ.get('REQUEST_METHOD', 'GET')
-        )
-
+    for attempt in range(max_retries):
         try:
-            with urllib.request.urlopen(req, timeout=30) as response:
-                status = f"{response.status} {response.reason}"
-                response_headers = dict(response.getheaders())
-                # Remove hop-by-hop headers from response
-                for hop in ('connection', 'keep-alive', 'proxy-authenticate',
-                           'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade'):
-                    response_headers.pop(hop, None)
-                # Convert headers to list of tuples
-                headers_list = [(k, v) for k, v in response_headers.items()]
-                start_response(status, headers_list)
-                return [response.read()]
-        except urllib.error.URLError as e:
-            # If Streamlit server is not ready, return 503
-            status = '503 Service Unavailable'
-            headers = [('Content-Type', 'text/plain')]
-            start_response(status, headers)
-            return [b'Streamlit server is starting up. Please try again in a few seconds.']
-    except Exception as e:
-        # Fallback error
-        status = '500 Internal Server Error'
-        headers = [('Content-Type', 'text/plain')]
-        start_response(status, headers)
-        return [f'Internal Server Error: {str(e)}'.encode()]
+            # Construct the target URL
+            target_url = f"http://127.0.0.1:{PORT}{environ.get('PATH_INFO', '')}"
+            if environ.get('QUERY_STRING'):
+                target_url += f"?{environ['QUERY_STRING']}"
+
+            # Prepare headers to forward (excluding hop-by-hop headers)
+            headers = {}
+            for key, value in environ.items():
+                if key.startswith('HTTP_'):
+                    header_name = key[5:].replace('_', '-')
+                    if header_name.lower() not in ('host', 'connection', 'keep-alive',
+                                                 'proxy-authenticate', 'proxy-authorization',
+                                                 'te', 'trailers', 'transfer-encoding', 'upgrade'):
+                        headers[header_name] = value
+                elif key in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
+                    header_name = key.replace('_', '-')
+                    headers[header_name] = value
+
+            # Read request body if present
+            request_body = None
+            if environ.get('REQUEST_METHOD') in ('POST', 'PUT', 'PATCH'):
+                try:
+                    request_body_size = int(environ.get('CONTENT_LENGTH', 0))
+                except (ValueError):
+                    request_body_size = 0
+                if request_body_size > 0:
+                    request_body = environ['wsgi.input'].read(request_body_size)
+
+            # Make the request to Streamlit server
+            req = urllib.request.Request(
+                target_url,
+                data=request_body,
+                headers=headers,
+                method=environ.get('REQUEST_METHOD', 'GET')
+            )
+
+            try:
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    status = f"{response.status} {response.reason}"
+                    response_headers = dict(response.getheaders())
+                    # Remove hop-by-hop headers from response
+                    for hop in ('connection', 'keep-alive', 'proxy-authenticate',
+                               'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade'):
+                        response_headers.pop(hop, None)
+                    # Convert headers to list of tuples
+                    headers_list = [(k, v) for k, v in response_headers.items()]
+                    start_response(status, headers_list)
+                    return [response.read()]
+            except urllib.error.URLError as e:
+                # If this is not the last attempt, wait and retry
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                else:
+                    # If Streamlit server is not ready after all retries, return 503
+                    status = '503 Service Unavailable'
+                    headers = [('Content-Type', 'text/plain')]
+                    start_response(status, headers)
+                    return [b'Streamlit server is starting up. Please try again in a few seconds.']
+        except Exception as e:
+            # If this is not the last attempt, wait and retry
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
+                continue
+            else:
+                # Fallback error after all retries
+                status = '500 Internal Server Error'
+                headers = [('Content-Type', 'text/plain')]
+                start_response(status, headers)
+                return [f'Internal Server Error: {str(e)}'.encode()]
+
+    # This should not be reached, but just in case
+    status = '503 Service Unavailable'
+    headers = [('Content-Type', 'text/plain')]
+    start_response(status, headers)
+    return [b'Streamlit server is starting up. Please try again in a few seconds.']
 
 # For local testing: if run directly, start Streamlit server and serve requests via the same WSGI app
 if __name__ == "__main__":
