@@ -31,7 +31,7 @@ try:
         entries_ref = db.collection("trips").document(trip_doc.id).collection("entries")
         entries = list(entries_ref.stream())
         entry_count = len(entries)
-        total_spent = sum(entry.to_dict().get("amount", 0) for entry in entries)
+        total_spent = sum(float(entry.to_dict().get("amount", 0)) for entry in entries)  # fix: cast to float
 
         trip_dict["entry_count"] = entry_count
         trip_dict["total_spent"] = total_spent
@@ -78,13 +78,15 @@ with tab1:
                 balance_str = "✓ Settled"
             else:
                 # Find who owes whom
-                # For 2-person split, there should be at most 2 entries in balance
-                # One positive (owed money), one negative (owes money)
                 owed_to = None
                 owed_by = None
                 amount_owed = 0
 
                 for uid, amount in balance.items():
+                    try:
+                        amount = float(amount)
+                    except (TypeError, ValueError):
+                        continue  # skip corrupted entries (e.g. UID stored as value)
                     if amount > 0:  # This person is owed money
                         owed_to = uid
                         amount_owed = amount
@@ -211,6 +213,10 @@ with tab2:
                 amount_owed = 0
 
                 for uid, amount in balance.items():
+                    try:
+                        amount = float(amount)
+                    except (TypeError, ValueError):
+                        continue  # skip corrupted entries (e.g. UID stored as value)
                     if amount > 0:  # This person is owed money
                         owed_to = uid
                         amount_owed = amount

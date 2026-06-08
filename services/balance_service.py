@@ -20,7 +20,7 @@ def recompute_balance(trip_id: str, db) -> dict:
     paid_by = defaultdict(float)
     for entry in entries:
         entry_data = entry.to_dict()
-        amount = entry_data.get("amount", 0)
+        amount = float(entry_data.get("amount", 0) or 0)  # fix: cast to float, guard None
         paid_by_uid = entry_data.get("paidByUid")
         if paid_by_uid:
             paid_by[paid_by_uid] += amount
