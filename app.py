@@ -66,3 +66,10 @@ if __name__ == "__main__":
     # This is needed for Vercel to run the Streamlit app
     from streamlit.web import bootstrap
     bootstrap.run(__file__, 'run', [])
+
+# WSGI app object for Vercel Python builder
+def app(environ, start_response):
+    status = '200 OK'
+    headers = [('Content-Type', 'text/plain'), ('Cache-Control', 'no-cache')]
+    start_response(status, headers)
+    return [b'Streamlit app is running on Vercel. If you see this, the WSGI hook is working but Streamlit is not being served.']
