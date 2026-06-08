@@ -2,7 +2,8 @@
   "builds": [
     {
       "src": "app.py",
-      "use": "@vercel/streamlit"
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "15mb" }
     }
   ],
   "routes": [

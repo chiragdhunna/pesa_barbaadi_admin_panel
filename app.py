@@ -61,3 +61,8 @@ else:
         st.session_state["authenticated"] = False
         st.rerun()
 
+# This block runs when the script is executed directly (e.g., by Vercel Python builder)
+if __name__ == "__main__":
+    # This is needed for Vercel to run the Streamlit app
+    from streamlit.web import bootstrap
+    bootstrap.run(__file__, 'run', [])
