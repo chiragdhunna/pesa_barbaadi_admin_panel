@@ -159,6 +159,17 @@ Without this index, the recent activity section on the dashboard will fail to lo
 6. Upload your Firebase service account key as a secret file (name it `serviceAccountKey.json`)
 7. Deploy
 
+### Vercel
+
+To deploy on Vercel, you need to set the following environment variables in your Vercel project settings:
+
+- `FIREBASE_SERVICE_ACCOUNT_JSON`: The entire Firebase service account key as a JSON string.
+  You can obtain this by copying the contents of your serviceAccountKey.json file.
+- `ADMIN_USERNAME`: Your admin username for login.
+- `ADMIN_PASSWORD`: Your admin password for login.
+
+**Note:** The application will automatically use these environment variables if they are set. If not, it will fall back to looking for `FIREBASE_SERVICE_ACCOUNT_PATH` in Streamlit secrets (for local development) and then environment variables.
+
 ### Other Platforms (Heroku, Docker, etc.)
 
 The application can be deployed anywhere that supports Python and Streamlit. You'll need to:

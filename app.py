@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 
 def login_page():
     st.set_page_config(
@@ -6,6 +7,17 @@ def login_page():
         page_icon="⛽",
         layout="wide"
     )
+
+    # Get admin credentials from secrets or environment variables
+    try:
+        ADMIN_USERNAME = st.secrets["ADMIN_USERNAME"]
+    except KeyError:
+        ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME")
+
+    try:
+        ADMIN_PASSWORD = st.secrets["ADMIN_PASSWORD"]
+    except KeyError:
+        ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
     # Create centered column
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -22,8 +34,8 @@ def login_page():
             submit_button = st.form_submit_button("Login")
 
             if submit_button:
-                # Compare with secrets (direct comparison is acceptable for internal tools)
-                if username == st.secrets["ADMIN_USERNAME"] and password == st.secrets["ADMIN_PASSWORD"]:
+                # Compare with secrets or environment variables
+                if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
                     st.session_state["authenticated"] = True
                     st.rerun()
                 else:
