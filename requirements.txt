@@ -6,3 +6,4 @@ pandas
 pillow
 extra-streamlit-components
 itsdangerous
+streamlit-cookies-manager

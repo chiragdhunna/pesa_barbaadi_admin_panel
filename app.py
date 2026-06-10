@@ -1,5 +1,22 @@
 import streamlit as st
 import os
+from streamlit_cookies_manager import EncryptedCookieManager
+from services.auth import is_authenticated, login, logout
+
+# Set Streamlit server port from Vercel's PORT environment variable if available
+if "PORT" in os.environ:
+    os.environ["STREAMLIT_SERVER_PORT"] = os.environ["PORT"]
+
+# Initialize cookie manager directly (not cached to avoid widget warnings)
+cookie_password = st.secrets.get("COOKIE_PASSWORD", "a-default-secret-key-for-development-only")
+cookies = EncryptedCookieManager(
+    prefix="pesa_barbaadi_admin",  # Removed trailing slash for consistency
+    password=cookie_password,
+)
+
+# Wait for cookies to be ready
+if not cookies.ready():
+    st.stop()
 
 def login_page():
     st.set_page_config(
@@ -8,6 +25,7 @@ def login_page():
         layout="wide"
     )
 
+    # Get admin credentials from secrets or environment variables
     try:
         ADMIN_USERNAME = st.secrets["ADMIN_USERNAME"]
     except (KeyError, FileNotFoundError):
@@ -18,41 +36,36 @@ def login_page():
     except (KeyError, FileNotFoundError):
         ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
+    # Create centered column
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
+        # Large fuel emoji and title
         st.markdown("<h1 style='text-align: center;'>⛽</h1>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align: center;'>Pesa Barbaadi Admin</h2>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: #888;'>Admin interface for managing trip expenses</p>", unsafe_allow_html=True)
 
-        with st.form("login"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            submit_button = st.form_submit_button("Login")
+    # Login form
+    with st.form("login"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submit_button = st.form_submit_button("Login")
 
-            if submit_button:
-                if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-                    st.session_state["authenticated"] = True
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password")
+        if submit_button:
+            # Use the login function from auth service
+            if login(cookies, username, password):
+                st.rerun()
+            else:
+                st.error("Invalid username or password")
 
-
-# Check authentication status
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
-
-if not st.session_state["authenticated"]:
+# Check authentication status using cookie and session state
+if not is_authenticated(cookies):
     login_page()
     st.stop()
 else:
-    st.set_page_config(
-        page_title="Pesa Barbaadi Admin",
-        page_icon="⛽",
-        layout="wide"
-    )
     st.success("✓ Logged in as admin")
     st.info("Use the sidebar to navigate between pages.")
 
+    # Logout button in sidebar
     if st.sidebar.button("🚪 Logout"):
-        st.session_state["authenticated"] = False
+        logout(cookies)
         st.rerun()
