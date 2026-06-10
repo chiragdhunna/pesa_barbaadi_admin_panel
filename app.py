@@ -3,10 +3,6 @@ import os
 from streamlit_cookies_manager import EncryptedCookieManager
 from services.auth import is_authenticated, login, logout
 
-# Set Streamlit server port from Vercel's PORT environment variable if available
-if "PORT" in os.environ:
-    os.environ["STREAMLIT_SERVER_PORT"] = os.environ["PORT"]
-
 # Initialize cookie manager directly (not cached to avoid widget warnings)
 cookie_password = st.secrets.get("COOKIE_PASSWORD", "a-default-secret-key-for-development-only")
 cookies = EncryptedCookieManager(
