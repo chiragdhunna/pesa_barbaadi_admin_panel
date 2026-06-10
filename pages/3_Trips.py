@@ -72,32 +72,15 @@ with tab1:
             if not balance:  # Empty balance
                 balance_str = "✓ Settled"
             else:
-                # Find who owes whom
-                owed_to = None
-                owed_by = None
-                amount_owed = 0
+                from services.balance_service import parse_balance
+                owed_by, owed_to, amount_owed = parse_balance(balance)
 
-                for uid, amount in balance.items():
-                    try:
-                        amount = float(amount)
-                    except (TypeError, ValueError):
-                        continue  # skip corrupted entries (e.g. UID stored as value)
-                    if amount > 0:  # This person is owed money
-                        owed_to = uid
-                        amount_owed = amount
-                    elif amount < 0:  # This person owes money
-                        owed_by = uid
-
-                # Get names from members dict
-                owed_to_name = members.get(owed_to, owed_to) if owed_to else "Unknown"
-                owed_by_name = members.get(owed_by, owed_by) if owed_by else "Unknown"
-
-                if owed_to and owed_by and amount_owed != 0:
-                    balance_str = f"X owes Y ₹{int(amount_owed):,}"
-                    # Replace X and Y with actual names
-                    balance_str = balance_str.replace("X", owed_by_name).replace("Y", owed_to_name)
+                if owed_to and owed_by and amount_owed > 0:
+                    owed_to_name = members.get(owed_to, owed_to)
+                    owed_by_name = members.get(owed_by, owed_by)
+                    balance_str = f"{owed_by_name} owes {owed_to_name} ₹{int(amount_owed):,}"
                 else:
-                    balance_str = "✓ Settled" if amount_owed == 0 else "⚠️ Check balance"
+                    balance_str = "✓ Settled"
 
             df_data.append({
                 "Trip ID": trip["id"],
@@ -202,29 +185,13 @@ with tab2:
             if not balance:  # Empty balance
                 st.success("✓ All settled")
             else:
-                # Calculate who owes whom
-                owed_to = None
-                owed_by = None
-                amount_owed = 0
+                from services.balance_service import parse_balance
+                owed_by, owed_to, amount_owed = parse_balance(balance)
 
-                for uid, amount in balance.items():
-                    try:
-                        amount = float(amount)
-                    except (TypeError, ValueError):
-                        continue  # skip corrupted entries (e.g. UID stored as value)
-                    if amount > 0:  # This person is owed money
-                        owed_to = uid
-                        amount_owed = amount
-                    elif amount < 0:  # This person owes money
-                        owed_by = uid
-
-                if owed_to and owed_by:
+                if owed_to and owed_by and amount_owed > 0:
                     owed_to_name = members.get(owed_to, owed_to)
                     owed_by_name = members.get(owed_by, owed_by)
-                    if amount_owed > 0:
-                        st.error(f"{owed_by_name} owes {owed_to_name} ₹{int(amount_owed):,.0f}")
-                    else:
-                        st.error(f"{owed_to_name} owes {owed_by_name} ₹{int(-amount_owed):,.0f}")
+                    st.error(f"{owed_by_name} owes {owed_to_name} ₹{int(amount_owed):,.0f}")
                 else:
                     st.info("No balance data or settled")
 

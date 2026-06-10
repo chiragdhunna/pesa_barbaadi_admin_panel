@@ -75,25 +75,13 @@ try:
     if not balance:  # Empty balance
         st.info("ℹ️ No balance data available")
     else:
-        # Calculate who owes whom
-        owed_to = None
-        owed_by = None
-        amount_owed = 0
+        from services.balance_service import parse_balance
+        owed_by, owed_to, amount_owed = parse_balance(balance)
 
-        for uid, amount in balance.items():
-            if amount > 0:  # This person is owed money
-                owed_to = uid
-                amount_owed = amount
-            elif amount < 0:  # This person owes money
-                owed_by = uid
-
-        if owed_to and owed_by:
+        if owed_to and owed_by and amount_owed > 0:
             owed_to_name = members.get(owed_to, owed_to)
             owed_by_name = members.get(owed_by, owed_by)
-            if amount_owed > 0:
-                st.error(f"💸 {owed_by_name} owes {owed_to_name} ₹{int(amount_owed):,.0f}")
-            else:
-                st.error(f"💸 {owed_to_name} owes {owed_by_name} ₹{int(-amount_owed):,.0f}")
+            st.error(f"💸 {owed_by_name} owes {owed_to_name} ₹{int(amount_owed):,.0f}")
         else:
             st.info("✓ All settled")
 except Exception as e:
