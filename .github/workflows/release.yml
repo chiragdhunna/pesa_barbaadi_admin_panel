@@ -1,0 +1,35 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate tag
+        id: tag
+        run: |
+          TAG=$(date +"%Y.%m.%d-%H%M%S")
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Release ${{ steps.tag.outputs.tag }}
+          body: |
+            Automated release from commit:
+
+            ${{ github.event.head_commit.message }}
+
+            Live App:
+            https://pesabarbaadiapppanel-cytaucw82yp56ymudaut23.streamlit.app/
