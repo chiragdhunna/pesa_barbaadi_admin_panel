@@ -1,22 +1,7 @@
 import streamlit as st
-from streamlit_cookies_manager import EncryptedCookieManager
 from services.firebase_service import init_firebase
 from firebase_admin import firestore
 from firebase_admin.auth import UidIdentifier
-from services.auth import is_authenticated
-
-# Initialize cookie manager directly (not cached to avoid widget warnings)
-cookie_password = st.secrets.get("COOKIE_PASSWORD", "a-default-secret-key-for-development-only")
-cookies = EncryptedCookieManager(
-    prefix="pesa_barbaadi_admin",  # Removed trailing slash for consistency
-    password=cookie_password,
-)
-
-if not cookies.ready():
-    st.stop()
-if not is_authenticated(cookies):
-    st.warning("Please log in first.")
-    st.stop()
 
 # Firebase init
 try:

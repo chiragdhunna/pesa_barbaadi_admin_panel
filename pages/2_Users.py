@@ -3,11 +3,6 @@ import pandas as pd
 from services.firebase_service import init_firebase
 from firebase_admin import firestore
 
-# Auth check + Firebase init at top
-if not st.session_state.get("authenticated"):
-    st.warning("Please log in to access the users page")
-    st.stop()
-
 try:
     db, auth_client = init_firebase()
 except Exception as e:

@@ -5,11 +5,6 @@ from firebase_admin import firestore
 from datetime import datetime
 import uuid
 
-# Auth check + Firebase init at top
-if not st.session_state.get("authenticated"):
-    st.warning("Please log in to access the entries page")
-    st.stop()
-
 try:
     db, auth_client = init_firebase()
 except Exception as e:
