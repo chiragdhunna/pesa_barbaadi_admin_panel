@@ -22,10 +22,17 @@ with col_left:
         trips_ref = db.collection("trips")
         trips_data = []
 
+        shimmer_placeholder = st.empty()
+        with shimmer_placeholder.container():
+            from services.ui_service import show_centered_spinner
+            show_centered_spinner("Loading trips...")
+
         for trip_doc in trips_ref.stream():
             trip_dict = trip_doc.to_dict()
             trip_dict["id"] = trip_doc.id
             trips_data.append(trip_dict)
+
+        shimmer_placeholder.empty()
 
         if not trips_data:
             st.info("No trips found. Please create a trip first.")
@@ -72,14 +79,15 @@ with col_right:
 
             # Fetch all entries for selected trip
             entries_ref = db.collection("trips").document(selected_trip_id).collection("entries")
-            entries_stream = list(entries_ref.stream())
-
-            # Convert to list of dicts
             entries_list = []
-            for entry_doc in entries_stream:
-                entry_dict = entry_doc.to_dict()
-                entry_dict["id"] = entry_doc.id
-                entries_list.append(entry_dict)
+            with st.spinner("Fetching entries..."):
+                entries_stream = list(entries_ref.stream())
+
+                # Convert to list of dicts
+                for entry_doc in entries_stream:
+                    entry_dict = entry_doc.to_dict()
+                    entry_dict["id"] = entry_doc.id
+                    entries_list.append(entry_dict)
 
             # Filter entries by date range if provided
             filtered_entries = entries_list

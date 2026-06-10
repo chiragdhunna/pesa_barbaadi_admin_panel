@@ -19,6 +19,8 @@ cookies = EncryptedCookieManager(
 
 # Wait for cookies to be ready
 if not cookies.ready():
+    from services.ui_service import show_centered_spinner
+    show_centered_spinner("Initializing application...")
     st.stop()
 
 def login_page_func():

@@ -18,6 +18,11 @@ try:
     trips_ref = db.collection("trips")
     trips_data = []
 
+    shimmer_placeholder = st.empty()
+    with shimmer_placeholder.container():
+        from services.ui_service import show_table_shimmer
+        show_table_shimmer(rows=5)
+
     for trip_doc in trips_ref.stream():
         trip_dict = trip_doc.to_dict()
         trip_dict["id"] = trip_doc.id
@@ -32,6 +37,8 @@ try:
         trip_dict["total_spent"] = total_spent
 
         trips_data.append(trip_dict)
+
+    shimmer_placeholder.empty()
 
     # Display total trips metric
     st.metric("Total Trips", len(trips_data))

@@ -18,10 +18,17 @@ try:
     trips_ref = db.collection("trips")
     trips_data = []
 
+    shimmer_placeholder = st.empty()
+    with shimmer_placeholder.container():
+        from services.ui_service import show_centered_spinner
+        show_centered_spinner("Loading trips...")
+
     for trip_doc in trips_ref.stream():
         trip_dict = trip_doc.to_dict()
         trip_dict["id"] = trip_doc.id
         trips_data.append(trip_dict)
+
+    shimmer_placeholder.empty()
 
     if not trips_data:
         st.info("No trips found. Please create a trip first.")
@@ -90,14 +97,22 @@ except Exception as e:
 # Fetch all entries for selected trip
 try:
     entries_ref = db.collection("trips").document(selected_trip_id).collection("entries")
+    entries_list = []
+
+    shimmer_placeholder = st.empty()
+    with shimmer_placeholder.container():
+        from services.ui_service import show_table_shimmer
+        show_table_shimmer(rows=5)
+
     entries_stream = list(entries_ref.stream())
 
     # Convert to list of dicts with id and data
-    entries_list = []
     for entry_doc in entries_stream:
         entry_dict = entry_doc.to_dict()
         entry_dict["id"] = entry_doc.id
         entries_list.append(entry_dict)
+
+    shimmer_placeholder.empty()
 
 except Exception as e:
     st.error(f"Failed to load entries: {e}")
