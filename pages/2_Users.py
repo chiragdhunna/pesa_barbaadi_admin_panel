@@ -15,6 +15,11 @@ st.title("👥 Users")
 try:
     # Build a list of dicts for display
     users_list = []
+    shimmer_placeholder = st.empty()
+    with shimmer_placeholder.container():
+        from services.ui_service import show_table_shimmer
+        show_table_shimmer(rows=5)
+
     for user in auth_client.list_users().iterate_all():
         users_list.append({
             "uid": user.uid,
@@ -24,6 +29,8 @@ try:
             "last_sign_in": user.user_metadata.last_sign_in_timestamp if hasattr(user.user_metadata, 'last_sign_in_timestamp') else "",
             "disabled": user.disabled
         })
+
+    shimmer_placeholder.empty()
 
     # Display total users metric
     st.metric("Total Users", len(users_list))
